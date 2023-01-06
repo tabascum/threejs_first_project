@@ -25,7 +25,8 @@ renderer.render(scene, camera);
 
 const geometry = new THREE.TorusGeometry(10, 3, 16, 100);
 const material = new THREE.MeshStandardMaterial({
-  color: 0x00ff80,
+  color: 0x00ffff,
+  wireframe: false,
 });
 const torus = new THREE.Mesh(geometry, material);
 
@@ -38,20 +39,74 @@ const ambientLight = new THREE.AmbientLight(0xffffff);
 
 scene.add(pointLight, ambientLight);
 
-const lightHelper = new THREE.PointLightHelper(pointLight);
+/* const lightHelper = new THREE.PointLightHelper(pointLight); */
 const gridHelper = new THREE.GridHelper(200, 50);
-scene.add(lightHelper, gridHelper);
+scene.add(gridHelper);
 
 const controls = new OrbitControls(camera, renderer.domElement);
 
 function addStar() {
   const geometry = new THREE.SphereGeometry(0.25, 24, 24);
+  const material = new THREE.MeshStandardMaterial({
+    color: 0xffffff,
+  });
+
+  const star = new THREE.Mesh(geometry, material);
+
+  const [x, y, z] = Array(3)
+    .fill()
+    .map(() => THREE.MathUtils.randFloatSpread(100));
+
+  star.position.set(x, y, z);
+  scene.add(star);
 }
+
+Array(200).fill().forEach(addStar);
+
+const spaceTexture = new THREE.TextureLoader().load("space.jpg");
+scene.background = spaceTexture;
+
+const profileTexture = new THREE.TextureLoader().load("profile.jpg");
+
+const profile = new THREE.Mesh(
+  new THREE.BoxGeometry(4, 4, 4),
+  new THREE.MeshBasicMaterial({ map: profileTexture })
+);
+
+scene.add(profile);
+
+const planetTexture = new THREE.TextureLoader().load("Kepler-22_b.jpg");
+
+const planet = new THREE.Mesh(
+  new THREE.SphereGeometry(3, 32, 32),
+  new THREE.MeshStandardMaterial({ map: planetTexture })
+);
+
+scene.add(planet);
+
+planet.position.z = 30;
+planet.position.setX(-10);
+
+function moveCamera() {
+  const top = document.body.getBoundingClientRect().top;
+  planet.rotation.x += 0.05;
+  planet.rotation.y += 0.075;
+  planet.rotation.z += 0.05;
+
+  profile.rotation.y += 0.05;
+  profile.rotation.z += 0.05;
+
+  camera.position.z = top * -0.01;
+  camera.position.x = top * -0.0002;
+  camera.position.y = top * -0.0002;
+}
+
+document.body.onscroll = moveCamera;
 
 function animate() {
   requestAnimationFrame(animate);
   torus.rotation.x += 0.01;
-  torus.rotation.y += 0.01;
+  torus.rotation.y += 0.005;
   torus.rotation.z += 0.01;
 
   controls.update();
